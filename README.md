@@ -24,7 +24,7 @@ The analysis is based on the Global YouTube Statistics 2023, obtained from Kaggl
 - Source: [Kaggle](https://www.kaggle.com/datasets/nelgiriyewithana/global-youtube-statistics-2023/data)
 - Time Period Covered: 2023
 - Number of Records: 995 rows
-- Number of Features: 28 (17 numeric, 7 character, 4 integer) 
+- Number of Features: 28 (17 numeric, 7 characters, 4 integers) 
 - Key Variables: The data contains information about channel types, subscriber counts, video views, estimated earnings, country of origin, and more. Missing values were handled by dropping or imputing as needed to ensure data integrity.
 
 ## Objective
