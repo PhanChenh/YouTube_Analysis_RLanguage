@@ -54,6 +54,55 @@ The primary objective of this project is to analyze the performance of YouTube c
 
 ## Results & Visualizations
 
+![image](https://github.com/user-attachments/assets/d6ebcd6b-6b91-4221-8d04-b1b8aac28c8d)
+Figure 1: Subscriber vs Video view for Top 10 Channels
+
+![image](https://github.com/user-attachments/assets/841aca09-6779-429a-be58-46f9ba298599)
+Figure 2: Global Impact of Influential Creators by Video Views
+
+Finding:
+- T-Series, Cocomelon - Nursery Rhymes, and SET India dominate in terms of subscribers and views.
+- The channel types that lead are Music, Education, and Entertainment, highlighting a strong audience preference for these categories.
+- Some channels achieve higher views but fewer subscribers (and vice versa), suggesting different engagement strategies or content types.
+
+![image](https://github.com/user-attachments/assets/134faed3-32e0-414f-9eb8-93f3cc9b2f94)
+Figure 3: Most Popular Channel type by Upload Frequencies
+
+Finding:
+- News and Entertainment channels have the highest upload frequencies, but high frequency does not necessarily translate to higher subscribers or views.
+- Entertainment channels seem to correlate well with high engagement, unlike News channels, which show a mismatch between upload frequency and engagement.
+
+![image](https://github.com/user-attachments/assets/069a6b45-9fdd-4383-8f91-6b27f8093da0)
+Figure 4: Number of channels are created by years
+
+Finding:
+- Entertainment channels have longevity and consistent creation over the years, showing strong and sustained demand.
+- Music channels also maintain a presence but not as consistently as Entertainment.
+- Channels in niches like Education, People, Games, Film, and Comedy are steadily growing, suggesting emerging opportunities.
+
+![image](https://github.com/user-attachments/assets/f98f1d4c-20fa-4ef1-b3f0-e6eda4710cf9)
+Figure 5: Correlation between Channel Performance vs. Earnings
+
+Finding:
+- Video views have the highest correlation with earnings, more so than upload frequency or subscriber count.
+- Subscribers also correlate with views, indicating that a larger subscriber base can drive higher viewership but is not the sole factor for earnings.
+
+![image](https://github.com/user-attachments/assets/d092821a-495b-4eec-a220-ed72e9d06447)
+Figure 6: Location of Highest Yearly Earning by Country
+
+![image](https://github.com/user-attachments/assets/28af58bb-7f87-4ccd-a748-c00e6a2f5810)
+Figure 7: Highest yearly earnings By Country
+
+Finding:
+- The United States and India lead in yearly earnings, indicating strong YouTube markets in these regions.
+- Brazil and Korea are emerging markets but with a noticeable gap compared to the US and India.
+
+
+
+
+
+
+
 ## Recommendation
 
 ## Contact
