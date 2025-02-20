@@ -97,13 +97,24 @@ Finding:
 - The United States and India lead in yearly earnings, indicating strong YouTube markets in these regions.
 - Brazil and Korea are emerging markets but with a noticeable gap compared to the US and India.
 
-
-
-
-
-
-
 ## Recommendation
+1. Content Strategy:
+- Create high-quality, engaging videos to boost views, which are highly correlated with earnings.
+- Develop strategies to grow subscriber count, indirectly increasing viewership and earnings.
+2. Channel Type Optimization:
+- Focus on Entertainment, Music, and Education channels, which attract large audiences.
+- Consider niche categories like People, Games, Film, and Comedy for steady growth.
+3. Upload Frequency:
+- Maintain consistent uploads, especially for Entertainment channels, to ensure sustained demand.
+- Avoid excessive uploads for News channels; prioritize content quality and relevance.
+4. Market Targeting:
+- Focus on the US and India for monetization, as they generate the highest earnings.
+- Explore growth opportunities in Brazil and Korea with localized content.
+5. Monetization Strategies:
+- Focus on video views and subscriptions, as both directly impact earnings.
+6. Data-Driven Approach:
+- Regularly analyze performance metrics and adjust strategies accordingly.
+- Experiment with different content formats and engagement strategies to improve both subscribers and views.
 
 ## Contact
 
