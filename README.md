@@ -29,7 +29,7 @@ The analysis is based on the Global YouTube Statistics 2023, obtained from Kaggl
 
 ## Objective
 
-The primary objective of this project is to analyze the performance of YouTube channels, identify trends in channel types, upload frequencies, and the relationship between channel performance and estimated earnings. The project also explores geographical insights and recommends strategies for boosting channel performance.
+The primary objective of this R-based project is to analyze the performance of YouTube channels, identify trends in channel types, upload frequencies, and explore the relationship between channel performance and estimated earnings. The project also delves into geographical insights and recommends strategies for boosting channel performance.
 
 ## Analysis Approach
 
