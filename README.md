@@ -14,7 +14,7 @@
 
 ## Overview:
 
-The YouTube Channel Analysis project aims to explore and analyze the dataset of the most subscribed YouTube channels, collected by Nidula Elgiriyewithana from the Kaggle platform. The dataset provides valuable insights into channel performance, types, geographical distribution, and potential earnings.
+The YouTube Channel Analysis project, built using R language, explores and analyzes the dataset of the most subscribed YouTube channels, collected by Nidula Elgiriyewithana from the Kaggle platform. The dataset provides valuable insights into channel performance, types, geographical distribution, and potential earnings.
 
 ## Dataset
 
