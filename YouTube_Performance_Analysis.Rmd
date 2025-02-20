@@ -1,0 +1,385 @@
+---
+title: "Project Title: Insights into YouTube Channel Performance - A Data-Driven Approach"
+author: "Phan Chenh"
+output: pdf_document
+---
+
+## Introduction
+The dataset analyzed was collected by *Nidula Elgiriyewithana* and can be downloaded from Kaggle platform. You can create an account and log in to Kaggle to download the dataset (a .csv file) and access the data dictionary.
+
+This dataset unveils the statistics of the most subscribed YouTube channels and offers a perfect avenue to analyze and gain valuable insights from the luminaries of the platform.
+
+Dataset link: <https://www.kaggle.com/datasets/nelgiriyewithana/global-youtube-statistics-2023> 
+
+## Data loading, overview and set up
+Install packages
+
+```
+install.packages("ggplot2")
+install.packages("ggthemes")
+install.packages("gridExtra")
+install.packages("dplyr")
+install.packages("reshape2")
+install.packages("scales")
+install.packages("maps")
+
+```
+
+Load libraries
+
+```{r, message=FALSE}
+library(ggplot2)
+library(ggthemes)
+library(gridExtra)
+library(dplyr)
+library(reshape2)
+library(scales)
+library(maps)
+```
+
+Setting up a plotting theme to make all graphs visually consistent and aesthetically
+
+```{r}
+project_theme <- theme_few() + 
+  theme(plot.title = element_text(size = 12, color = "darkblue")) +
+  theme(plot.margin = margin(10,30,10,30))
+```
+
+Load the main data
+
+```{r}
+data <- read.csv("Global YouTube Statistics.csv", header = T)
+```
+
+Using *str()* to analyze the data 
+
+```{r, results='hide'}
+str(data)
+```
+
+There are 995 obs with 28 variables, including 17 numeric, 7 character, and 4 integer variables. However, converting character variables to factors is a good habit to get into if we ever want to move on to efficient storage methods in R. The "created_year" and "created_date" columns were treated as numeric in R should be converted to factors as well. For the rest of the variables, we will keep it as the same for now. 
+
+Using *summary()* to analyze the data
+
+```{r, results='hide'}
+summary(data)
+```
+
+Most numeric variables have missing data, from missing only 1 data at "video_views_rank" column to about 34% of total data at "subscribers_for_last_30_days" column. Other columns such as "country_rank", "channel_type_rank", "video_views_for_the_last_30_days", "Gross.tertiary.education.enrollment....", "Population", "Unemployment.rate", "Urban_population", "Latitude", "Longitude" also have missing data. The "created_year" and "created_date" are each missing 5 values. 
+
+Most of numeric variables are highly right-skewed as show in the summary table.  
+
+Viewing the first ten observations by *head()*
+
+```{r, results='hide'}
+head(data)
+```
+From the above two summaries and observation of the first ten rows, we can see that the "Country", "Abbreviation" columns are the same since abbreviation is the countries' abbreviation. Therefore, we only need to keep 1 column.
+
+### Initial transformations
+Based on the above observations, we will convert some columns to a more appropriate format and might add new columns that is useful in further analysis.
+
+```{r}
+# Convert character variables to factors
+data <- within(data, {
+  category <- as.factor(category)
+  Country <- as.factor(Country)
+  Abbreviation <- as.factor(Abbreviation)
+  channel_type <- as.factor(channel_type)
+  created_month <- as.factor(created_month)
+  created_year <- as.factor(created_year)
+  created_date <- as.factor(created_date)
+})
+
+# Counting the missing values in each variable
+count_missing <- function(df){
+  sapply(df, FUN = function(col) sum(is.na(col)))
+}
+nacounts <- count_missing(data)
+hasNA = which(nacounts > 0)
+nacounts[hasNA]
+```
+
+data has 995 rows, it is safe to drop rows with NAs in the "video_views_rank" but not the others. However, there are columns which might have the missing values are all in the same rows. Let's check it before we decide to drop any rows. 
+
+```{r}
+# Checking if missing values are from the same rows
+summary(data[is.na(data$Population),
+             c("Latitude", "Unemployment.rate", "Urban_population", "Population", "Gross.tertiary.education.enrollment....", "country_rank", "Longitude")])
+
+summary(data[is.na(data$channel_type_rank) & is.na(data$video_views_for_the_last_30_days),
+             c("Population", "subscribers_for_last_30_days", "video_views_rank")])
+```
+
+The summary above shows that "Population", "Urban_population", "Gross.tertiary.education.enrollment....", "country_rank", "Unemployment.rate", "Latitude", "Longitude" columns have missing values in the same rows.
+
+Further checking with other columns, we can see that there is missing data happened in "subscribers_for_last_30_days" and "channel_type_rank" as well. In this case, we will omit 12 rows as 1 NAs is in "video_views_rank" column and 11 NAs in which NAs "subscribers_for_last_30_days" intersect with NAs "channel_type_rank", "video_views_for_the_last_30_days" and  "Population" as other variables also contain the same NAs rows on themselves.
+
+```{r}
+# Remove rows that have NAs in the same rows
+data_cleaned <- subset(data, !(is.na(video_views_rank)))
+
+data_cleaned <- subset(data_cleaned, !(is.na(subscribers_for_last_30_days) & is.na(channel_type_rank) & is.na(video_views_for_the_last_30_days) & is.na(Population)))
+nrow(data)
+nrow(data_cleaned)
+```
+
+After remove a few NAs rows, we can see that the left missing values are all happened in numerical variables. We will replace them with the median or an appropriate estimate for values are missing randomly, and for values are missing systematically we will convert them to categorical and replace them with zero and add a masking variable.
+
+```{r, results='hide'}
+# Replacing missing values with median
+median_country_rank <- median(data_cleaned$country_rank, na.rm = TRUE)
+data_cleaned <- data_cleaned %>%
+  mutate(new_country_rank = ifelse(is.na(country_rank), median_country_rank, country_rank))
+
+median_channel_type_rank <- median(data_cleaned$channel_type_rank, na.rm = TRUE)
+data_cleaned <- data_cleaned %>%
+  mutate(new_channel_type_rank = ifelse(is.na(channel_type_rank), median_channel_type_rank, channel_type_rank))
+
+median_video_views_for_the_last_30_days <- median(data_cleaned$video_views_for_the_last_30_days, na.rm = TRUE)
+data_cleaned <- data_cleaned %>%
+  mutate(new_video_views_for_the_last_30_days = ifelse(is.na(video_views_for_the_last_30_days), median_video_views_for_the_last_30_days, video_views_for_the_last_30_days))
+
+median_subscribers_for_last_30_days <- median(data_cleaned$subscribers_for_last_30_days, na.rm = TRUE)
+data_cleaned <- data_cleaned %>%
+  mutate(new_subscribers_for_last_30_days = ifelse(is.na(subscribers_for_last_30_days), median_subscribers_for_last_30_days, subscribers_for_last_30_days))
+
+median_Latitude <- median(data_cleaned$Latitude, na.rm = TRUE)
+data_cleaned <- data_cleaned %>%
+  mutate(new_Latitude = ifelse(is.na(Latitude), median_Latitude, Latitude))
+
+median_Longitude <- median(data_cleaned$Longitude, na.rm = TRUE)
+data_cleaned <- data_cleaned %>%
+  mutate(new_Longitude = ifelse(is.na(Longitude), median_Longitude, Longitude))
+```
+
+```{r, results='hide'}
+# Convert missing values to categorical and replace them with zero
+data_cleaned$Population <- ifelse(is.na(data_cleaned$Population), 0, data_cleaned$Population)
+
+data_cleaned$Gross.tertiary.education.enrollment.... <- ifelse(is.na(data_cleaned$Gross.tertiary.education.enrollment....), 0, data_cleaned$Gross.tertiary.education.enrollment....)
+
+data_cleaned$Urban_population <- ifelse(is.na(data_cleaned$Urban_population), 0, data_cleaned$Urban_population)
+
+data_cleaned$Unemployment.rate <- ifelse(is.na(data_cleaned$Unemployment.rate), 0, data_cleaned$Unemployment.rate)
+
+
+data_cleaned <- within(data_cleaned, {
+  Population <- as.factor(Population)
+  Gross.tertiary.education.enrollment.... <- as.factor(Gross.tertiary.education.enrollment....)
+  Urban_population <- as.factor(Urban_population)
+  Unemployment.rate <- as.factor(Unemployment.rate)
+  })
+```
+
+Let's have a look if there is any NAs data
+
+```{r}
+apply(is.na(data_cleaned), 2, sum)
+```
+
+Most of the columns do not have any NAs. The ones that do we already change to new columns above called "new_country_rank", "new_channel_type_rank", "new_video_views_for_the_last_30_days", "new_subscribers_for_last_30_days", "new_Longitude" and "new_Latitude"
+
+### Gain valuable insight: top channels YouTube and what sets them apart from others 
+
+```{r}
+# Select the top 10 channels by their sum
+top10_channels <- data_cleaned %>%
+  arrange(desc(sum(subscribers))) %>%
+  head(10)
+
+# Chose influence factors
+influence_factors <- top10_channels %>%
+  select(Youtuber, Country, channel_type, subscribers, video.views, video_views_rank, uploads, new_country_rank, new_channel_type_rank)
+
+# Create a scatter plot
+p1 <- ggplot(influence_factors, aes(x = video.views, y = subscribers, color = Youtuber)) +
+  geom_point(size = 3)+
+  labs(title = "Subscriber vs Video view for Top 10 Channels",
+       x = "Subscriber",
+       y = "Video views") + project_theme
+p1
+
+# Find out YouTube's channel type
+youtube_channel <- influence_factors[, c("Youtuber", "channel_type")]
+youtube_channel
+
+# Identify influential YouTube creators from different countries and analyze their impact on a global scale
+country_impact <- top10_channels %>%
+  group_by(Country) %>%
+  summarise(total_subscribers = sum(subscribers),
+            total_views = sum(video.views)) %>%
+  arrange(desc(total_subscribers))
+
+p2 <- ggplot(country_impact, aes(x = reorder(Country, total_views), y = total_views)) +
+  geom_bar(stat = "identity", fill = "darkblue") +
+  coord_flip() +
+  labs(title = "Global Impact of Influential Creators by Video Views",
+       x = "Country",
+       y = "Total Video Views") + project_theme
+
+p2
+```
+
+Insights:
+
+T-Series, Cocomelon - Nursery Rhymes, and SET India dominate in terms of subscribers and views.
+
+The channel types that lead are Music, Education, and Entertainment, highlighting a strong audience preference for these categories.
+
+Some channels achieve higher views but fewer subscribers (and vice versa), suggesting different engagement strategies or content types.
+
+### Discover the most popular channel type and upload frequencies that resonate with audiences
+
+```{r}
+# Grouping and summarizing by channel type
+channel_sum <- data_cleaned %>%
+  group_by(channel_type) %>%
+  summarise(total_uploads = sum(uploads))
+
+
+# Create a bar plot
+p3 <- ggplot(channel_sum, aes(x = reorder(channel_type, total_uploads), y = total_uploads)) +
+  geom_bar(stat = "identity", fill = "darkblue") +
+  coord_flip() +
+  labs(title = "Most Popular Channel type by Upload Frequencies",
+       x = "Channel Type",
+       y = "Total Uploads") + project_theme
+p3
+```
+
+Insights:
+
+News and Entertainment channels have the highest upload frequencies, but high frequency does not necessarily translate to higher subscribers or views.
+
+Entertainment channels seem to correlate well with high engagement, unlike News channels, which show a mismatch between upload frequency and engagement. 
+
+### Trending topics/ channel type by time
+We already have few top channels that we interested in, let's see how those channels growth after years, are they still popular or out dated?
+
+```{r}
+# Create a heatmap 
+counting <- count(data_cleaned, created_year, channel_type)
+p4 <- ggplot(data = counting, aes(x = created_year, y = channel_type, fill = n)) + geom_tile(mapping = aes(fill = n )) + scale_fill_gradient(high = "#F6BE00", low = "#3090C7") +
+  labs(
+    title = "Number of channels are created by years ",
+    fill = "Number"
+  ) + project_theme +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+p4
+```
+
+Insights:
+
+Entertainment channels have longevity and consistent creation over the years, showing strong and sustained demand.
+
+Music channels also maintain a presence but not as consistently as Entertainment.
+
+Channels in niches like Education, People, Games, Film, and Comedy are steadily growing, suggesting emerging opportunities. 
+
+### Explore the correlation between channel performance and estimated earnings
+
+```{r}
+# Calculate correlation coefficients
+correlation <- cor(data_cleaned[, c("subscribers", "video.views", "uploads", "highest_yearly_earnings")])
+
+# Create a heatmap
+correlation_data <- melt(correlation)
+
+p5 <-ggplot(data = correlation_data, aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient(high = "#F6BE00", low = "#3090C7") +
+  labs(
+    title = "Correlation between Channel Performance vs. Earnings",
+    fill = "% Correlation"
+  ) + project_theme +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()) 
+
+p5
+```
+
+Insights:
+
+Video views have the highest correlation with earnings, more so than upload frequency or subscriber count.
+
+Subscribers also correlate with views, indicating that a larger subscriber base can drive higher viewership but is not the sole factor for earnings.
+
+### Geography information
+
+Plot the highest yearly earnings by country to have an understanding of where YouTubers earn the most.
+
+```{r, warning=FALSE}
+## Plot a map
+# Create a custom theme for the map
+project_map_theme <- project_theme + 
+  theme(panel.grid = element_blank(),
+        panel.border = element_blank(),
+        legend.position = "bottom",
+        legend.direction = 'horizontal',
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+# Create the map plot
+p7 <- ggplot(data_cleaned) +
+  geom_polygon(map_data("world"), mapping = aes(x = long, y = lat, group = group), fill = "#F0F0F0", colour = "lightgray") +
+  geom_point(aes(x = new_Longitude, y = new_Latitude, size = highest_yearly_earnings, color = "pink"), alpha = 0.5) +
+  coord_quickmap() +
+  ggtitle("Location of Highest Yearly Earning by Country") + 
+  project_map_theme
+p7
+```
+
+```{r}
+earning_by_country <- data_cleaned %>% 
+  group_by(Country) %>% 
+  summarise(
+    highest_yearly_earnings_mean = mean(highest_yearly_earnings),
+    highest_yearly_earnings_sum = sum(highest_yearly_earnings)) %>%
+  arrange(desc(highest_yearly_earnings_sum))
+
+# Create a bar plot
+p6 <- ggplot(earning_by_country, mapping = aes(x = reorder(Country, highest_yearly_earnings_sum), y = highest_yearly_earnings_sum)) +
+  geom_bar(stat = "identity", fill = "darkblue") +
+  ggtitle("Highest yearly earnings By Country") + 
+  coord_flip() +
+  labs(x = "Country") +
+  theme(axis.text.y = element_text(size = rel(0.8))) +
+  project_theme
+p6
+```
+
+According to the plot (p6) and (p7) above, there are some clear issues with the data, there is a "nan" country take third place in bar plot. However, as we already treat it as a variable so we will leave it as it is for now. 
+
+Insights:
+
+The United States and India lead in yearly earnings, indicating strong YouTube markets in these regions.
+
+Brazil and Korea are emerging markets but with a noticeable gap compared to the US and India.
+
+### Recommendations:
+
+1. Focus on Content Quality: Prioritize creating engaging and valuable content to increase video views and earnings, as uploads alone do not significantly impact revenue.
+
+2. Optimize Subscriber Growth: Encourage subscriptions with CTAs, collaborations, and exclusive content, as subscribers correlate with video views and earnings.
+
+3. Leverage Data-Driven Decisions: Use YouTube Analytics to track performance and adjust strategies, focusing on top countries like the USA and India, as well as emerging markets like Brazil and Korea.
+
+4. Collaborate with Influencers: Partner with creators from high-impact regions (India, USA) to expand global reach and attract subscribers.
+
+5. Improve Thumbnails and Titles: Enhance click-through rates with compelling thumbnails and SEO-optimized titles to boost video views.
+
+6. Diversify Revenue Streams: Explore alternative monetization methods, such as merchandise and sponsorships, in addition to ad revenue.
+
+7. Consistency in Uploads: Maintain regular uploads, especially for Entertainment and News channels, to build audience engagement.
+
+8. Engage with Viewers: Build a strong community through comments, live streams, and interactive content to retain subscribers.
+
+9. Explore Emerging Markets: Target Brazil and Korea with localized content to tap into growing YouTube audiences.
+
+10. Monitor Trends: Stay updated on industry trends, incorporating viral challenges or popular topics to drive views and growth.
